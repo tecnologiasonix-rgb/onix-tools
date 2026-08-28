@@ -153,11 +153,15 @@ export function LeadCard({ lead, onSelect, onChangeStatus }: Props) {
                 Registrar venta
               </button>
               <button
-                onClick={() => handleStatus("liberado")}
+                onClick={() => {
+                  if (confirm(`¿Liberar a ${lead.nombre}? Volverá a la lista de disponibles para cualquier vendedor.`)) {
+                    handleStatus("liberado");
+                  }
+                }}
                 disabled={busy}
-                className="text-sm text-neutral-400 hover:text-neutral-700 px-3 py-1.5"
+                className="text-sm text-red-600 border border-red-200 rounded-md px-3 py-1.5 hover:bg-red-50 disabled:opacity-50"
               >
-                Liberar
+                Liberar lead
               </button>
             </div>
           </div>
