@@ -12,6 +12,51 @@ import { LeadStatus, SaleInfo } from "@/lib/assignments";
 type Filter = "todos" | "disponibles" | "mios";
 type WebFilter = "todos" | "con_web" | "sin_web";
 
+const FILTER_LABELS: Record<Filter, string> = {
+  disponibles: "Disponibles",
+  mios: "Mis leads",
+  todos: "Todos",
+};
+
+const WEB_FILTER_LABELS: Record<WebFilter, string> = {
+  todos: "Con o sin web",
+  con_web: "Con web",
+  sin_web: "Sin web",
+};
+
+function SegmentedControl<T extends string>({
+  value,
+  onChange,
+  options,
+  labels,
+}: {
+  value: T;
+  onChange: (v: T) => void;
+  options: readonly T[];
+  labels: Record<T, string>;
+}) {
+  return (
+    <div className="inline-flex items-center gap-0.5 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] p-1">
+      {options.map((opt) => {
+        const active = value === opt;
+        return (
+          <button
+            key={opt}
+            onClick={() => onChange(opt)}
+            className={`relative whitespace-nowrap rounded-[calc(var(--radius-md)-4px)] px-3 py-1.5 text-[13px] font-medium transition-colors duration-150 ${
+              active
+                ? "bg-[var(--ink)] text-white shadow-sm"
+                : "text-[var(--foreground-faint)] hover:text-[var(--foreground)]"
+            }`}
+          >
+            {labels[opt]}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function ProductPage({
   params,
 }: {
@@ -92,63 +137,107 @@ export default function ProductPage({
     return true;
   });
 
+  const disponibles = leads.filter((l) => !l.assignment).length;
+  const mios = leads.filter((l) => l.assignment?.assignedToMe).length;
+
   if (authLoading || !user) return null;
 
   return (
     <>
       <Header />
-      <main className="flex-1 mx-auto max-w-5xl w-full px-4 py-8">
-        <div className="mb-6">
-          <h1 className="text-xl font-semibold">{productName || "Cargando…"}</h1>
-          <p className="text-sm text-neutral-500">{leads.length} leads en total</p>
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-7 sm:px-6 sm:py-8">
+        <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h1 className="text-xl font-bold tracking-tight text-[var(--foreground)] sm:text-2xl">
+              {productName || (
+                <span className="skeleton inline-block h-6 w-40 align-middle" />
+              )}
+            </h1>
+            <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-[var(--foreground-faint)]">
+              <span className="font-data">{leads.length} leads en total</span>
+              <span aria-hidden="true">·</span>
+              <span className="flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-[var(--status-asignado)]" aria-hidden="true" />
+                <span className="font-data">{disponibles}</span> disponibles
+              </span>
+              <span aria-hidden="true">·</span>
+              <span className="flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-[var(--brand)]" aria-hidden="true" />
+                <span className="font-data">{mios}</span> tuyos
+              </span>
+            </div>
+          </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 mb-6">
-          <div className="flex gap-1 bg-neutral-100 rounded-md p-1">
-            {(["disponibles", "mios", "todos"] as Filter[]).map((f) => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`text-sm px-3 py-1.5 rounded ${
-                  filter === f ? "bg-white shadow-sm font-medium" : "text-neutral-500"
-                }`}
-              >
-                {f === "disponibles" ? "Disponibles" : f === "mios" ? "Mis leads" : "Todos"}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex gap-1 bg-neutral-100 rounded-md p-1">
-            {(["todos", "con_web", "sin_web"] as WebFilter[]).map((f) => (
-              <button
-                key={f}
-                onClick={() => setWebFilter(f)}
-                className={`text-sm px-3 py-1.5 rounded whitespace-nowrap ${
-                  webFilter === f ? "bg-white shadow-sm font-medium" : "text-neutral-500"
-                }`}
-              >
-                {f === "todos" ? "Con o sin web" : f === "con_web" ? "Con web" : "Sin web"}
-              </button>
-            ))}
-          </div>
-
-          <input
-            type="text"
-            placeholder="Buscar por nombre, tipo o dirección…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 min-w-[200px] border border-neutral-300 rounded-md px-3 py-1.5 text-sm"
+        <div className="mb-6 flex flex-wrap items-center gap-2.5">
+          <SegmentedControl
+            value={filter}
+            onChange={setFilter}
+            options={["disponibles", "mios", "todos"] as const}
+            labels={FILTER_LABELS}
           />
+          <SegmentedControl
+            value={webFilter}
+            onChange={setWebFilter}
+            options={["todos", "con_web", "sin_web"] as const}
+            labels={WEB_FILTER_LABELS}
+          />
+
+          <div className="relative min-w-[200px] flex-1">
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 16 16"
+              fill="none"
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--foreground-faint)]"
+            >
+              <circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.4" />
+              <path d="M10.5 10.5 14 14" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Buscar por nombre, tipo o dirección…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="field pl-9"
+            />
+          </div>
         </div>
 
         {error && (
-          <p className="text-sm text-red-600 mb-4 bg-red-50 rounded-md px-3 py-2">{error}</p>
+          <p className="animate-enter mb-5 flex items-center gap-2 rounded-[var(--radius-md)] border border-[var(--danger-border)] bg-[var(--danger-bg)] px-3.5 py-2.5 text-sm font-medium text-[var(--danger)]">
+            <svg aria-hidden="true" viewBox="0 0 16 16" fill="none" className="h-4 w-4 shrink-0">
+              <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.3" />
+              <path d="M8 5v3.5M8 11h.01" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+            </svg>
+            {error}
+          </p>
         )}
 
         {loading ? (
-          <p className="text-neutral-400">Cargando leads…</p>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="surface-card space-y-3 p-4">
+                <div className="skeleton h-4 w-2/3" />
+                <div className="skeleton h-3 w-1/3" />
+                <div className="skeleton h-3 w-full" />
+                <div className="skeleton h-3 w-4/5" />
+                <div className="skeleton h-9 w-full" />
+              </div>
+            ))}
+          </div>
         ) : filtered.length === 0 ? (
-          <p className="text-neutral-400">No hay leads que coincidan con este filtro.</p>
+          <div className="animate-enter flex flex-col items-center gap-2 rounded-[var(--radius-lg)] border border-dashed border-[var(--border-strong)] py-16 text-center">
+            <svg aria-hidden="true" viewBox="0 0 40 40" fill="none" className="h-9 w-9 text-[var(--foreground-faint)]">
+              <circle cx="20" cy="20" r="15" stroke="currentColor" strokeWidth="1.5" />
+              <path d="M25 25 32 32" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+            <p className="font-medium text-[var(--foreground-muted)]">
+              No hay leads que coincidan con este filtro
+            </p>
+            <p className="text-sm text-[var(--foreground-faint)]">
+              Prueba a cambiar los filtros o la búsqueda.
+            </p>
+          </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filtered.map((lead) => (
