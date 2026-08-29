@@ -57,53 +57,88 @@ export function SaleForm({ leadName, onCancel, onSubmit }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
-        <h3 className="font-semibold mb-1">Registrar venta</h3>
-        <p className="text-sm text-neutral-500 mb-4">{leadName}</p>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <div
+      className="animate-overlay-in fixed inset-0 z-50 flex items-end justify-center bg-[var(--ink)]/45 p-0 backdrop-blur-[2px] sm:items-center sm:p-4"
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget && !submitting) onCancel();
+      }}
+    >
+      <div className="animate-modal-in surface-card w-full max-w-md rounded-b-none p-6 shadow-[var(--shadow-lg)] sm:rounded-b-[var(--radius-lg)]">
+        <div className="flex items-start justify-between gap-3">
           <div>
-            <label className="block text-sm font-medium mb-1">Tipo de pago</label>
-            <div className="flex gap-3">
-              <label className="flex items-center gap-1.5 text-sm">
-                <input
-                  type="radio"
-                  checked={tipoPago === "pago_unico"}
-                  onChange={() => setTipoPago("pago_unico")}
-                />
-                Pago único
-              </label>
-              <label className="flex items-center gap-1.5 text-sm">
-                <input
-                  type="radio"
-                  checked={tipoPago === "suscripcion_mensual"}
-                  onChange={() => setTipoPago("suscripcion_mensual")}
-                />
-                Suscripción mensual
-              </label>
+            <h3 className="font-semibold text-[var(--foreground)]">Registrar venta</h3>
+            <p className="mt-0.5 text-sm text-[var(--foreground-faint)]">{leadName}</p>
+          </div>
+          <span className="badge bg-[var(--status-vendido-bg)] text-[var(--status-vendido-fg)]">
+            Verificable
+          </span>
+        </div>
+
+        <form onSubmit={handleSubmit} className="mt-5 space-y-4">
+          <div>
+            <label className="mb-1.5 block text-[13px] font-medium text-[var(--foreground)]">
+              Tipo de pago
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {(
+                [
+                  { value: "pago_unico", label: "Pago único" },
+                  { value: "suscripcion_mensual", label: "Suscripción mensual" },
+                ] as const
+              ).map((opt) => {
+                const active = tipoPago === opt.value;
+                return (
+                  <button
+                    type="button"
+                    key={opt.value}
+                    onClick={() => setTipoPago(opt.value)}
+                    className={`rounded-[var(--radius-md)] border px-3 py-2 text-left text-[13px] font-medium transition-colors duration-150 ${
+                      active
+                        ? "border-[var(--brand)] bg-[var(--brand-tint)] text-[var(--brand-active)]"
+                        : "border-[var(--border-strong)] bg-[var(--surface)] text-[var(--foreground-muted)] hover:bg-[var(--surface-sunken)]"
+                    }`}
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <span
+                        className={`h-3.5 w-3.5 shrink-0 rounded-full border-2 ${
+                          active ? "border-[var(--brand)]" : "border-[var(--border-strong)]"
+                        }`}
+                      >
+                        {active && (
+                          <span className="block h-full w-full scale-[0.45] rounded-full bg-[var(--brand)]" />
+                        )}
+                      </span>
+                      {opt.label}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium mb-1">Importe</label>
+              <label className="mb-1.5 block text-[13px] font-medium text-[var(--foreground)]">
+                Importe
+              </label>
               <input
                 type="text"
                 inputMode="decimal"
                 value={importe}
                 onChange={(e) => setImporte(e.target.value)}
                 placeholder="99.00"
-                className="w-full border border-neutral-300 rounded-md px-3 py-2 text-sm"
+                className="field font-data"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Moneda</label>
+              <label className="mb-1.5 block text-[13px] font-medium text-[var(--foreground)]">
+                Moneda
+              </label>
               <select
                 value={moneda}
                 onChange={(e) => setMoneda(e.target.value)}
-                className="w-full border border-neutral-300 rounded-md px-3 py-2 text-sm"
+                className="field font-data cursor-pointer"
               >
                 <option value="EUR">EUR</option>
                 <option value="USD">USD</option>
@@ -112,7 +147,7 @@ export function SaleForm({ leadName, onCancel, onSubmit }: Props) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">
+            <label className="mb-1.5 block text-[13px] font-medium text-[var(--foreground)]">
               Referencia de pago (verificable)
             </label>
             <input
@@ -120,38 +155,47 @@ export function SaleForm({ leadName, onCancel, onSubmit }: Props) {
               value={referenciaPago}
               onChange={(e) => setReferenciaPago(e.target.value)}
               placeholder="Nº de factura, ID de transacción de Stripe/PayPal…"
-              className="w-full border border-neutral-300 rounded-md px-3 py-2 text-sm"
+              className="field font-data"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Fecha y hora del pago</label>
+            <label className="mb-1.5 block text-[13px] font-medium text-[var(--foreground)]">
+              Fecha y hora del pago
+            </label>
             <input
               type="datetime-local"
               value={fechaHoraPago}
               onChange={(e) => setFechaHoraPago(e.target.value)}
-              className="w-full border border-neutral-300 rounded-md px-3 py-2 text-sm"
+              className="field font-data"
               required
             />
           </div>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && (
+            <p className="flex items-center gap-1.5 rounded-[var(--radius-sm)] border border-[var(--danger-border)] bg-[var(--danger-bg)] px-2.5 py-1.5 text-[12.5px] font-medium text-[var(--danger)]">
+              <svg aria-hidden="true" viewBox="0 0 16 16" fill="none" className="h-3.5 w-3.5 shrink-0">
+                <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.3" />
+                <path d="M8 5v3.5M8 11h.01" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+              </svg>
+              {error}
+            </p>
+          )}
 
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="flex justify-end gap-2 pt-1">
             <button
               type="button"
               onClick={onCancel}
               disabled={submitting}
-              className="text-sm px-4 py-2 rounded-md border border-neutral-300 hover:bg-neutral-50"
+              className="btn btn-secondary px-4 py-2"
             >
               Cancelar
             </button>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="text-sm px-4 py-2 rounded-md bg-neutral-900 text-white hover:bg-neutral-700 disabled:opacity-50"
-            >
+            <button type="submit" disabled={submitting} className="btn btn-success px-4 py-2">
+              {submitting && (
+                <span className="h-3.5 w-3.5 animate-spin-slow rounded-full border-2 border-white/40 border-t-white" aria-hidden="true" />
+              )}
               {submitting ? "Guardando…" : "Confirmar venta"}
             </button>
           </div>

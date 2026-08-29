@@ -4,6 +4,7 @@ import { useState } from "react";
 import { EnrichedLead } from "@/lib/types";
 import { LeadStatus, SaleInfo } from "@/lib/assignments";
 import { SaleForm } from "@/components/SaleForm";
+import { CountdownRing } from "@/components/CountdownRing";
 
 type Props = {
   lead: EnrichedLead;
@@ -19,21 +20,23 @@ const STATUS_LABELS: Record<LeadStatus, string> = {
   liberado: "Liberado",
 };
 
-const STATUS_COLORS: Record<LeadStatus, string> = {
-  asignado: "bg-blue-100 text-blue-700",
-  contactado: "bg-amber-100 text-amber-700",
-  interesado: "bg-purple-100 text-purple-700",
-  vendido: "bg-green-100 text-green-700",
-  liberado: "bg-neutral-100 text-neutral-600",
+// Cada estado lleva su color de acento (borde + badge) y su color de fondo/texto
+// de badge, derivados de los tokens de globals.css — nunca colores sueltos aquí.
+const STATUS_ACCENT: Record<LeadStatus, string> = {
+  asignado: "var(--status-asignado)",
+  contactado: "var(--status-contactado)",
+  interesado: "var(--status-interesado)",
+  vendido: "var(--status-vendido)",
+  liberado: "var(--status-liberado)",
 };
 
-function timeRemaining(expiresAt: string): string {
-  const ms = new Date(expiresAt).getTime() - Date.now();
-  if (ms <= 0) return "expirado";
-  const hours = Math.floor(ms / (1000 * 60 * 60));
-  const mins = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
-  return `${hours}h ${mins}m restantes`;
-}
+const STATUS_BADGE_CLASS: Record<LeadStatus, string> = {
+  asignado: "bg-[var(--status-asignado-bg)] text-[var(--status-asignado-fg)]",
+  contactado: "bg-[var(--status-contactado-bg)] text-[var(--status-contactado-fg)]",
+  interesado: "bg-[var(--status-interesado-bg)] text-[var(--status-interesado-fg)]",
+  vendido: "bg-[var(--status-vendido-bg)] text-[var(--status-vendido-fg)]",
+  liberado: "bg-[var(--status-liberado-bg)] text-[var(--status-liberado-fg)]",
+};
 
 export function LeadCard({ lead, onSelect, onChangeStatus }: Props) {
   const [busy, setBusy] = useState(false);
@@ -41,6 +44,7 @@ export function LeadCard({ lead, onSelect, onChangeStatus }: Props) {
   const [error, setError] = useState<string | null>(null);
 
   const a = lead.assignment;
+  const accent = a ? STATUS_ACCENT[a.status] : "var(--border-strong)";
 
   async function handleSelect() {
     setBusy(true);
@@ -72,66 +76,116 @@ export function LeadCard({ lead, onSelect, onChangeStatus }: Props) {
   }
 
   return (
-    <div className="border border-neutral-200 rounded-lg p-4 bg-white">
+    <div
+      className="surface-card surface-card--interactive animate-enter relative overflow-hidden p-4"
+      style={{ borderLeft: `3px solid ${accent}` }}
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h3 className="font-medium truncate">{lead.nombre}</h3>
-          <p className="text-sm text-neutral-500">{lead.tipo}</p>
+          <h3 className="truncate font-semibold text-[var(--foreground)]">{lead.nombre}</h3>
+          <p className="text-[13px] text-[var(--foreground-faint)]">{lead.tipo}</p>
         </div>
         {a && (
-          <span className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${STATUS_COLORS[a.status]}`}>
+          <span className={`badge shrink-0 ${STATUS_BADGE_CLASS[a.status]}`}>
             {STATUS_LABELS[a.status]}
           </span>
         )}
       </div>
 
-      <div className="mt-3 space-y-1 text-sm text-neutral-600">
-        {lead.direccion && <p>{lead.direccion}</p>}
-        {lead.telefono && <p>Tel: {lead.telefono}</p>}
-        {lead.email && <p>Email: {lead.email}</p>}
+      <div className="mt-3.5 space-y-1.5 text-[13.5px] text-[var(--foreground-muted)]">
+        {lead.direccion && (
+          <p className="flex items-start gap-1.5">
+            <svg aria-hidden="true" viewBox="0 0 16 16" fill="none" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--foreground-faint)]">
+              <path d="M8 14.5s5-4.2 5-8.2a5 5 0 0 0-10 0c0 4 5 8.2 5 8.2Z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
+              <circle cx="8" cy="6.3" r="1.7" stroke="currentColor" strokeWidth="1.3" />
+            </svg>
+            <span className="min-w-0">{lead.direccion}</span>
+          </p>
+        )}
+        {lead.telefono && (
+          <p className="flex items-center gap-1.5">
+            <svg aria-hidden="true" viewBox="0 0 16 16" fill="none" className="h-3.5 w-3.5 shrink-0 text-[var(--foreground-faint)]">
+              <path d="M3.5 2.5h2.2l1 3-1.5 1.2a8 8 0 0 0 4 4l1.2-1.5 3 1v2.2c0 .7-.6 1.2-1.2 1.1-5.6-.6-9.9-4.9-10.5-10.5-.1-.6.4-1.2 1.1-1.2Z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
+            </svg>
+            <span className="font-data">{lead.telefono}</span>
+          </p>
+        )}
+        {lead.email && (
+          <p className="flex items-center gap-1.5">
+            <svg aria-hidden="true" viewBox="0 0 16 16" fill="none" className="h-3.5 w-3.5 shrink-0 text-[var(--foreground-faint)]">
+              <path d="M2.5 4.5h11v7a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1v-7Z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
+              <path d="M2.7 4.8 8 9l5.3-4.2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span className="truncate">{lead.email}</span>
+          </p>
+        )}
         {lead.web && (
-          <p>
-            <a href={lead.web} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
-              {lead.web}
+          <p className="flex items-center gap-1.5">
+            <svg aria-hidden="true" viewBox="0 0 16 16" fill="none" className="h-3.5 w-3.5 shrink-0 text-[var(--foreground-faint)]">
+              <circle cx="8" cy="8" r="5.5" stroke="currentColor" strokeWidth="1.3" />
+              <path d="M2.5 8h11M8 2.5c1.4 1.6 2.2 3.5 2.2 5.5s-.8 3.9-2.2 5.5c-1.4-1.6-2.2-3.5-2.2-5.5S6.6 4.1 8 2.5Z" stroke="currentColor" strokeWidth="1.1" />
+            </svg>
+            <a
+              href={lead.web}
+              target="_blank"
+              rel="noreferrer"
+              className="truncate text-[var(--brand)] transition-colors hover:text-[var(--brand-hover)] hover:underline"
+            >
+              {lead.web.replace(/^https?:\/\//, "")}
             </a>
           </p>
         )}
       </div>
 
       {lead.notas && (
-        <p className="mt-3 text-sm text-neutral-500 line-clamp-3">{lead.notas}</p>
+        <p className="mt-3 line-clamp-3 rounded-[var(--radius-sm)] bg-[var(--surface-sunken)] px-2.5 py-2 text-[12.5px] leading-relaxed text-[var(--foreground-muted)]">
+          {lead.notas}
+        </p>
       )}
 
-      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+      {error && (
+        <p className="mt-2.5 flex items-center gap-1.5 rounded-[var(--radius-sm)] border border-[var(--danger-border)] bg-[var(--danger-bg)] px-2.5 py-1.5 text-[12.5px] font-medium text-[var(--danger)]">
+          <svg aria-hidden="true" viewBox="0 0 16 16" fill="none" className="h-3.5 w-3.5 shrink-0">
+            <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.3" />
+            <path d="M8 5v3.5M8 11h.01" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+          </svg>
+          {error}
+        </p>
+      )}
 
       <div className="mt-4">
         {!a && (
-          <button
-            onClick={handleSelect}
-            disabled={busy}
-            className="w-full text-sm bg-neutral-900 text-white rounded-md px-3 py-2 hover:bg-neutral-700 disabled:opacity-50"
-          >
+          <button onClick={handleSelect} disabled={busy} className="btn btn-primary w-full py-2.5">
+            {busy && <span className="h-3.5 w-3.5 animate-spin-slow rounded-full border-2 border-white/40 border-t-white" aria-hidden="true" />}
             {busy ? "Asignando…" : "Seleccionar lead"}
           </button>
         )}
 
         {a && !a.assignedToMe && (
-          <div className="text-sm text-neutral-500 bg-neutral-50 rounded-md px-3 py-2">
-            Asignado a <span className="font-medium">{a.assignedToName}</span>
-            <br />
-            <span className="text-xs">{timeRemaining(a.expiresAt)}</span>
+          <div className="flex items-center justify-between gap-3 rounded-[var(--radius-md)] bg-[var(--surface-sunken)] px-3 py-2.5">
+            <p className="min-w-0 text-[13px] text-[var(--foreground-muted)]">
+              Asignado a{" "}
+              <span className="font-semibold text-[var(--foreground)]">{a.assignedToName}</span>
+            </p>
+            <CountdownRing expiresAt={a.expiresAt} size={34} />
           </div>
         )}
 
         {a && a.assignedToMe && a.status !== "vendido" && (
-          <div className="space-y-2">
-            <p className="text-xs text-neutral-400">{timeRemaining(a.expiresAt)}</p>
+          <div className="space-y-2.5">
+            <div className="flex items-center justify-between gap-3 rounded-[var(--radius-md)] border border-[var(--brand-tint-strong)] bg-[var(--brand-tint)] px-3 py-2">
+              <p className="text-[12.5px] font-medium text-[var(--brand-active)]">
+                Tuyo mientras dure la exclusividad
+              </p>
+              <CountdownRing expiresAt={a.expiresAt} size={32} />
+            </div>
+
             <div className="flex flex-wrap gap-2">
               {a.status === "asignado" && (
                 <button
                   onClick={() => handleStatus("contactado")}
                   disabled={busy}
-                  className="text-sm border border-neutral-300 rounded-md px-3 py-1.5 hover:bg-neutral-50 disabled:opacity-50"
+                  className="btn btn-secondary flex-1 py-2 text-[13px]"
                 >
                   Marcar contactado
                 </button>
@@ -140,7 +194,7 @@ export function LeadCard({ lead, onSelect, onChangeStatus }: Props) {
                 <button
                   onClick={() => handleStatus("interesado")}
                   disabled={busy}
-                  className="text-sm border border-neutral-300 rounded-md px-3 py-1.5 hover:bg-neutral-50 disabled:opacity-50"
+                  className="btn btn-secondary flex-1 py-2 text-[13px]"
                 >
                   Marcar interesado
                 </button>
@@ -148,8 +202,11 @@ export function LeadCard({ lead, onSelect, onChangeStatus }: Props) {
               <button
                 onClick={() => setShowSaleForm(true)}
                 disabled={busy}
-                className="text-sm bg-green-600 text-white rounded-md px-3 py-1.5 hover:bg-green-700 disabled:opacity-50"
+                className="btn btn-success w-full py-2.5"
               >
+                <svg aria-hidden="true" viewBox="0 0 16 16" fill="none" className="h-4 w-4">
+                  <path d="M8 2v12M4.5 5.2c0-1.2 1.4-2.2 3.5-2.2s3.5 1 3.5 2.2-1.4 1.8-3.5 1.8-3.5.7-3.5 1.9S6.9 11 9 11s3.5-.8 3.5-2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+                </svg>
                 Registrar venta
               </button>
               <button
@@ -159,7 +216,7 @@ export function LeadCard({ lead, onSelect, onChangeStatus }: Props) {
                   }
                 }}
                 disabled={busy}
-                className="text-sm text-red-600 border border-red-200 rounded-md px-3 py-1.5 hover:bg-red-50 disabled:opacity-50"
+                className="btn btn-danger-outline w-full py-1.5 text-[12.5px]"
               >
                 Liberar lead
               </button>
@@ -168,15 +225,21 @@ export function LeadCard({ lead, onSelect, onChangeStatus }: Props) {
         )}
 
         {a && a.status === "vendido" && a.sale && (
-          <div className="text-sm bg-green-50 rounded-md px-3 py-2 space-y-0.5">
-            <p className="font-medium text-green-700">
+          <div className="space-y-1 rounded-[var(--radius-md)] border border-[var(--status-vendido)]/20 bg-[var(--status-vendido-bg)] px-3.5 py-3">
+            <p className="flex items-center gap-1.5 text-[13px] font-semibold text-[var(--status-vendido-fg)]">
+              <svg aria-hidden="true" viewBox="0 0 16 16" fill="none" className="h-4 w-4 shrink-0">
+                <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.4" />
+                <path d="M5.3 8.2 7.2 10l3.5-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
               Vendido — {a.sale.tipoPago === "suscripcion_mensual" ? "Suscripción mensual" : "Pago único"}
             </p>
-            <p className="text-green-700">
+            <p className="font-data text-lg font-bold text-[var(--status-vendido-fg)]">
               {a.sale.importe.toFixed(2)} {a.sale.moneda}
             </p>
-            <p className="text-xs text-neutral-500">Ref: {a.sale.referenciaPago}</p>
-            <p className="text-xs text-neutral-500">
+            <p className="font-data text-[11.5px] text-[var(--foreground-faint)]">
+              Ref: {a.sale.referenciaPago}
+            </p>
+            <p className="text-[11.5px] text-[var(--foreground-faint)]">
               {new Date(a.sale.fechaHoraPago).toLocaleString("es-ES")}
             </p>
           </div>
