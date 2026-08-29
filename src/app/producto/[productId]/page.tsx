@@ -10,6 +10,7 @@ import { EnrichedLead } from "@/lib/types";
 import { LeadStatus, SaleInfo } from "@/lib/assignments";
 
 type Filter = "todos" | "disponibles" | "mios";
+type WebFilter = "todos" | "con_web" | "sin_web";
 
 export default function ProductPage({
   params,
@@ -25,6 +26,7 @@ export default function ProductPage({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<Filter>("disponibles");
+  const [webFilter, setWebFilter] = useState<WebFilter>("todos");
   const [search, setSearch] = useState("");
 
   const load = useCallback(async () => {
@@ -79,6 +81,9 @@ export default function ProductPage({
   const filtered = leads.filter((lead) => {
     if (filter === "disponibles" && lead.assignment) return false;
     if (filter === "mios" && !lead.assignment?.assignedToMe) return false;
+    const hasWeb = lead.web.trim().length > 0;
+    if (webFilter === "con_web" && !hasWeb) return false;
+    if (webFilter === "sin_web" && hasWeb) return false;
     if (search.trim()) {
       const q = search.toLowerCase();
       const haystack = `${lead.nombre} ${lead.tipo} ${lead.direccion}`.toLowerCase();
@@ -109,6 +114,20 @@ export default function ProductPage({
                 }`}
               >
                 {f === "disponibles" ? "Disponibles" : f === "mios" ? "Mis leads" : "Todos"}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex gap-1 bg-neutral-100 rounded-md p-1">
+            {(["todos", "con_web", "sin_web"] as WebFilter[]).map((f) => (
+              <button
+                key={f}
+                onClick={() => setWebFilter(f)}
+                className={`text-sm px-3 py-1.5 rounded whitespace-nowrap ${
+                  webFilter === f ? "bg-white shadow-sm font-medium" : "text-neutral-500"
+                }`}
+              >
+                {f === "todos" ? "Con o sin web" : f === "con_web" ? "Con web" : "Sin web"}
               </button>
             ))}
           </div>
