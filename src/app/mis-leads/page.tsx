@@ -47,7 +47,17 @@ export default function MisLeadsPage() {
   if (authLoading || !user) return null;
 
   const ventas = items.filter((i) => i.assignment.status === "vendido");
-  const totalVentas = ventas.reduce((sum, i) => sum + (i.assignment.sale?.importe ?? 0), 0);
+  // Los importes pueden estar en distintas monedas (EUR, USD…): sumarlos
+  // todos juntos daría un total sin sentido, así que agrupamos por moneda.
+  const totalesPorMoneda = ventas.reduce<Record<string, number>>((acc, i) => {
+    if (!i.assignment.sale) return acc;
+    const { moneda, importe } = i.assignment.sale;
+    acc[moneda] = (acc[moneda] ?? 0) + importe;
+    return acc;
+  }, {});
+  const totalVentasLabel = Object.entries(totalesPorMoneda)
+    .map(([moneda, total]) => `${total.toFixed(2)} ${moneda}`)
+    .join(" + ");
 
   return (
     <>
@@ -55,8 +65,8 @@ export default function MisLeadsPage() {
       <main className="flex-1 mx-auto max-w-4xl w-full px-4 py-8">
         <h1 className="text-xl font-semibold mb-1">Mis leads</h1>
         <p className="text-sm text-neutral-500 mb-6">
-          {items.length} leads gestionados · {ventas.length} ventas · {totalVentas.toFixed(2)}{" "}
-          {ventas[0]?.assignment.sale?.moneda ?? "EUR"} en total
+          {items.length} leads gestionados · {ventas.length} ventas
+          {totalVentasLabel && <> · {totalVentasLabel} en total</>}
         </p>
 
         {loading ? (
