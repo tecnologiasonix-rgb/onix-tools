@@ -1,26 +1,411 @@
 @import "tailwindcss";
 
+/* =========================================================================
+   ONIX TOOLS — Design tokens
+   Ancla de marca: azul #1557f0 (theme-color real de tecnologiasonix.com)
+   y negro #0B0E14 (fondo del logo oficial). Todo lo demás se deriva de ahí.
+   ========================================================================= */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Fuentes autohospedadas vía @fontsource (no dependen de red externa en build). */
+  --font-inter: "Inter Variable";
+  --font-jbmono: "JetBrains Mono";
+
+  /* Superficie */
+  --background: #f6f7fb;
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --surface-sunken: #eef0f6;
+
+  /* Texto */
+  --foreground: #0f1729;
+  --foreground-muted: #545b6e;
+  --foreground-faint: #8990a3;
+
+  /* Bordes */
+  --border: #e3e6ef;
+  --border-strong: #cdd2e0;
+
+  /* Marca */
+  --brand: #1557f0;
+  --brand-hover: #123fc4;
+  --brand-active: #0f34a3;
+  --brand-tint: #eaf0fe;
+  --brand-tint-strong: #d6e2fd;
+  --ink: #0b0e14;
+  --ink-hover: #1a1f2b;
+
+  /* Estados operativos de un lead (no decorativos: cada uno es una fase real) */
+  --status-asignado: #1557f0;
+  --status-asignado-bg: #eaf0fe;
+  --status-asignado-fg: #0e3fc0;
+
+  --status-contactado: #b8770a;
+  --status-contactado-bg: #fdf3e2;
+  --status-contactado-fg: #92600a;
+
+  --status-interesado: #7c3aed;
+  --status-interesado-bg: #f2ecfe;
+  --status-interesado-fg: #6427c8;
+
+  --status-vendido: #0f9d58;
+  --status-vendido-bg: #e7f7ee;
+  --status-vendido-fg: #0b7a44;
+
+  --status-liberado: #6b7280;
+  --status-liberado-bg: #eef0f4;
+  --status-liberado-fg: #55596a;
+
+  /* Urgencia del cronómetro de 72h (azul -> ámbar -> coral) */
+  --urgency-low: #1557f0;
+  --urgency-mid: #d9880a;
+  --urgency-high: #e1483d;
+
+  /* Feedback */
+  --danger: #e1483d;
+  --danger-bg: #fdeceb;
+  --danger-border: #f6c9c5;
+  --success: #0f9d58;
+  --success-bg: #e7f7ee;
+
+  /* Geometría */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-full: 999px;
+
+  /* Sombra: difusa y fría, nunca negra pura, para que las tarjetas floten poco */
+  --shadow-xs: 0 1px 2px 0 rgba(15, 23, 41, 0.04);
+  --shadow-sm: 0 1px 3px 0 rgba(15, 23, 41, 0.07), 0 1px 2px -1px rgba(15, 23, 41, 0.06);
+  --shadow-md: 0 4px 16px -4px rgba(15, 23, 41, 0.12), 0 2px 6px -2px rgba(15, 23, 41, 0.07);
+  --shadow-lg: 0 16px 40px -12px rgba(15, 23, 41, 0.22);
+  --shadow-focus: 0 0 0 3px rgba(21, 87, 240, 0.28);
+
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-jbmono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* La app es una herramienta de trabajo de equipo: se mantiene en modo claro
+   siempre (legibilidad de datos e importes por encima de preferencia de SO). */
+
+* {
+  border-color: var(--border);
+}
+
+html {
+  color-scheme: light;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-feature-settings: "cv11", "ss01", "tnum";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Fondo ambiental: dos halos radiales muy sutiles anclados a la marca,
+   fijos al viewport, para que la app no se sienta un formulario plano
+   sin ser nunca ruidosos ni distraer de los datos. */
+.app-ambient-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(760px circle at 6% -8%, rgba(21, 87, 240, 0.07), transparent 60%),
+    radial-gradient(620px circle at 100% 0%, rgba(124, 58, 237, 0.05), transparent 55%),
+    var(--background);
+}
+
+::selection {
+  background: var(--brand-tint-strong);
+  color: var(--brand-active);
+}
+
+/* Foco de teclado visible en todos los controles interactivos */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  border-radius: var(--radius-sm);
+}
+
+/* Scrollbar discreta, coherente con la marca en webkit */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: var(--radius-full);
+  border: 2px solid var(--background);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--foreground-faint);
+}
+
+/* =========================================================================
+   Componentes utilitarios reutilizables
+   ========================================================================= */
+
+.surface-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+  transition: box-shadow var(--duration-base) var(--ease-standard),
+    border-color var(--duration-base) var(--ease-standard),
+    transform var(--duration-base) var(--ease-out);
+}
+
+.surface-card--interactive:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  line-height: 1.2;
+  border-radius: var(--radius-md);
+  transition: background-color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard),
+    transform var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-fast) var(--ease-standard);
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+.btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.btn-primary {
+  background: var(--ink);
+  color: #ffffff;
+  border: 1px solid var(--ink);
+  box-shadow: var(--shadow-xs);
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--ink-hover);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-brand {
+  background: var(--brand);
+  color: #ffffff;
+  border: 1px solid var(--brand);
+  box-shadow: var(--shadow-xs);
+}
+.btn-brand:hover:not(:disabled) {
+  background: var(--brand-hover);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-secondary {
+  background: var(--surface);
+  color: var(--foreground);
+  border: 1px solid var(--border-strong);
+}
+.btn-secondary:hover:not(:disabled) {
+  background: var(--surface-sunken);
+  border-color: var(--foreground-faint);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--foreground-muted);
+  border: 1px solid transparent;
+}
+.btn-ghost:hover:not(:disabled) {
+  background: var(--surface-sunken);
+  color: var(--foreground);
+}
+
+.btn-success {
+  background: var(--success);
+  color: #ffffff;
+  border: 1px solid var(--success);
+}
+.btn-success:hover:not(:disabled) {
+  background: #0c8449;
+}
+
+.btn-danger-outline {
+  background: transparent;
+  color: var(--danger);
+  border: 1px solid var(--danger-border);
+}
+.btn-danger-outline:hover:not(:disabled) {
+  background: var(--danger-bg);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  padding: 0.3rem 0.6rem;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}
+
+.field {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: 0.55rem 0.75rem;
+  font-size: 0.875rem;
+  color: var(--foreground);
+  transition: border-color var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-fast) var(--ease-standard);
+}
+.field:hover {
+  border-color: var(--foreground-faint);
+}
+.field:focus {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: var(--shadow-focus);
+}
+.field::placeholder {
+  color: var(--foreground-faint);
+}
+
+.font-tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+.font-data {
+  font-family: var(--font-mono), ui-monospace, "SFMono-Regular", monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface-sunken);
+  border-radius: var(--radius-md);
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.7),
+    transparent
+  );
+  animation: skeleton-sweep 1.6s ease-in-out infinite;
+}
+
+@keyframes skeleton-sweep {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-enter {
+  animation: fade-in-up var(--duration-base) var(--ease-out) both;
+}
+
+@keyframes spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.animate-spin-slow {
+  animation: spin-slow 1s linear infinite;
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+.animate-pulse-dot {
+  animation: pulse-dot 1.6s ease-in-out infinite;
+}
+
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+.animate-modal-in {
+  animation: modal-in var(--duration-base) var(--ease-out) both;
+}
+
+@keyframes overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.animate-overlay-in {
+  animation: overlay-in var(--duration-fast) var(--ease-standard) both;
+}
+
+/* Respeta preferencia de accesibilidad: sin movimiento salvo cambios instantáneos */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }
