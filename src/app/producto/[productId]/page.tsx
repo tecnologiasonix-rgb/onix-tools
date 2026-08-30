@@ -45,7 +45,7 @@ function SegmentedControl<T extends string>({
             onClick={() => onChange(opt)}
             className={`relative whitespace-nowrap rounded-[calc(var(--radius-md)-4px)] px-3 py-1.5 text-[13px] font-medium transition-colors duration-150 ${
               active
-                ? "bg-[var(--ink)] text-white shadow-sm"
+                ? "bg-[var(--ink)] text-[var(--ink-fg)] shadow-sm"
                 : "text-[var(--foreground-faint)] hover:text-[var(--foreground)]"
             }`}
           >
@@ -174,7 +174,23 @@ export default function ProductPage({
   const disponibles = leads.filter((l) => !l.assignment).length;
   const mios = leads.filter((l) => l.assignment?.assignedToMe).length;
 
-  if (authLoading || !user) return null;
+  if (authLoading) {
+    return (
+      <>
+        <Header />
+        <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-7 sm:px-6 sm:py-8">
+          <div className="animate-enter mx-auto mt-16 flex max-w-xs flex-col items-center gap-3 text-center">
+            <span
+              className="h-6 w-6 animate-spin-slow rounded-full border-2 border-[var(--brand)] border-t-transparent"
+              aria-hidden="true"
+            />
+            <p className="text-sm font-medium text-[var(--foreground-faint)]">Cargando tu sesión…</p>
+          </div>
+        </main>
+      </>
+    );
+  }
+  if (!user) return null;
 
   return (
     <>
