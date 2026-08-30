@@ -1,0 +1,22 @@
+rules_version = '2';
+
+// Toda la lectura/escritura de TODAS las colecciones (users, assignments,
+// referrals) pasa por las API routes de Next.js (servidor), que usan el
+// Admin SDK y por tanto se saltan estas reglas. Desde el navegador NO se
+// debe acceder a Firestore directamente, así que bloqueamos todo acceso de
+// cliente para máxima seguridad.
+//
+// Esto es deliberado incluso para "users": si permitiéramos que el cliente
+// leyera/escribiera su propio perfil directamente, en teoría podría
+// intentar escribir { role: "admin" } o { status: "activo" } sobre un
+// bloqueo — las reglas de Firestore pueden limitar la FORMA de un campo,
+// pero razonar "solo un admin puede cambiar el role de OTRO usuario" es
+// lógica de negocio, no validación de forma, y por eso vive en las API
+// routes (ver src/lib/auth-server.ts: requireAdmin) y no aquí.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
