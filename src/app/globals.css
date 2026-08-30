@@ -50,6 +50,7 @@
   --brand-tint-strong: #d6e2fd;
   --ink: #0b0e14;
   --ink-hover: #1a1f2b;
+  --ink-fg: #ffffff;
 
   /* Estados operativos de un lead (no decorativos: cada uno es una fase real) */
   --status-asignado: #1557f0;
@@ -125,6 +126,7 @@
   --brand-tint-strong: #1e2f4e;
   --ink: #eef1f7;
   --ink-hover: #ffffff;
+  --ink-fg: #0b0e14;
 
   /* Estados operativos de un lead — mismos matices, ajustados para fondo oscuro */
   --status-asignado: #3d8bff;
@@ -287,7 +289,7 @@ body {
 
 .btn-primary {
   background: var(--ink);
-  color: #ffffff;
+  color: var(--ink-fg);
   border: 1px solid var(--ink);
   box-shadow: var(--shadow-xs);
 }
