@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin";
 import { requireUser } from "@/lib/auth-server";
+import { getProduct } from "@/lib/products";
 import {
   assignmentDocId,
   referralDocId,
@@ -39,10 +40,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Falta productId o leadId" }, { status: 400 });
   }
 
+  const product = getProduct(productId);
+  if (!product) {
+    return NextResponse.json({ error: "Producto no encontrado" }, { status: 404 });
+  }
+
   // El vendedor debe tener este lead asignado y activo para generar un
   // referido sobre él — no se puede fabricar un enlace para un lead que no
   // se está trabajando de verdad.
-  const assignmentRef = adminDb.collection("assignments").doc(assignmentDocId(productId as AssignmentDoc["productId"], leadId));
+  const assignmentRef = adminDb.collection("assignments").doc(assignmentDocId(product.id, leadId));
   const assignmentSnap = await assignmentRef.get();
   if (!assignmentSnap.exists) {
     return NextResponse.json({ error: "No tienes este lead asignado" }, { status: 403 });
@@ -67,7 +73,7 @@ export async function POST(req: NextRequest) {
     referral = {
       code: user.referralCode,
       userId: user.uid,
-      productId: productId as ReferralDoc["productId"],
+      productId: product.id,
       leadId,
       createdAt: new Date().toISOString(),
       firstContactAt: null,

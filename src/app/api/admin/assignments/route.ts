@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin";
 import { requireAdmin } from "@/lib/auth-server";
-import { AssignmentDoc, isAssignmentActive } from "@/lib/types";
+import { getProduct } from "@/lib/products";
+import { AssignmentDoc, assignmentDocId, isAssignmentActive } from "@/lib/types";
 
 /**
  * A diferencia de GET /api/leads (que aplica la ventana progresiva de 20
@@ -46,7 +47,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Falta productId o leadId" }, { status: 400 });
   }
 
-  const docId = `${productId}_${leadId}`;
+  const product = getProduct(productId);
+  if (!product) {
+    return NextResponse.json({ error: "Producto no encontrado" }, { status: 404 });
+  }
+
+  const docId = assignmentDocId(product.id, leadId);
   const docRef = adminDb.collection("assignments").doc(docId);
   const snap = await docRef.get();
   if (!snap.exists) {

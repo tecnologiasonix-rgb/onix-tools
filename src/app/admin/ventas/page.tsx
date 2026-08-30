@@ -10,14 +10,22 @@ export default function AdminVentasPage() {
   const { getToken } = useAuth();
   const [assignments, setAssignments] = useState<AssignmentDoc[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
-      const token = await getToken();
-      const res = await apiFetch("/api/admin/assignments", token);
-      const data = await res.json();
-      setAssignments(data.assignments ?? []);
-      setLoading(false);
+      setError(null);
+      try {
+        const token = await getToken();
+        const res = await apiFetch("/api/admin/assignments", token);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error ?? "Error al cargar las ventas");
+        setAssignments(data.assignments ?? []);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Error al cargar las ventas");
+      } finally {
+        setLoading(false);
+      }
     })();
   }, [getToken]);
 
@@ -25,7 +33,20 @@ export default function AdminVentasPage() {
     .filter((a) => a.status === "vendido" && a.sale)
     .sort((a, b) => new Date(b.sale!.fechaHoraPago).getTime() - new Date(a.sale!.fechaHoraPago).getTime());
 
-  const totalImporte = ventas.reduce((sum, a) => sum + a.sale!.importe, 0);
+  // Los importes pueden venir en distintas monedas (EUR, USD…): sumarlos
+  // todos juntos daría un total sin sentido, así que se agrupan por moneda
+  // (mismo criterio que mis-leads/page.tsx). La comisión sí se suma directa
+  // sin agrupar: el servidor siempre la calcula y guarda en EUR (ver
+  // src/app/api/leads/status/route.ts), nunca en la moneda de la venta.
+  const totalImportePorMoneda = ventas.reduce<Record<string, number>>((acc, a) => {
+    if (!a.sale) return acc;
+    acc[a.sale.moneda] = (acc[a.sale.moneda] ?? 0) + a.sale.importe;
+    return acc;
+  }, {});
+  const totalImporteLabel =
+    Object.entries(totalImportePorMoneda)
+      .map(([moneda, total]) => `${total.toFixed(2)} ${moneda}`)
+      .join(" + ") || "0.00 €";
   const totalComision = ventas.reduce((sum, a) => sum + a.sale!.comisionImporte, 0);
 
   if (loading) {
@@ -45,10 +66,16 @@ export default function AdminVentasPage() {
         {ventas.length} venta{ventas.length === 1 ? "" : "s"} registrada{ventas.length === 1 ? "" : "s"}.
       </p>
 
+      {error && (
+        <p className="mt-3 flex items-center gap-1.5 rounded-[var(--radius-sm)] border border-[var(--danger-border)] bg-[var(--danger-bg)] px-2.5 py-1.5 text-[12.5px] font-medium text-[var(--danger)]">
+          {error}
+        </p>
+      )}
+
       <div className="mt-4 grid grid-cols-2 gap-3 sm:max-w-md">
         <div className="surface-card p-3.5">
-          <p className="font-data text-xl font-bold text-[var(--foreground)]">
-            {totalImporte.toFixed(2)} €
+          <p className="font-data truncate text-xl font-bold text-[var(--foreground)]">
+            {totalImporteLabel}
           </p>
           <p className="text-[12px] text-[var(--foreground-faint)]">Facturado total</p>
         </div>

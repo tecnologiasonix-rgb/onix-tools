@@ -27,16 +27,24 @@ export default function RankingPage() {
   const [ranking, setRanking] = useState<RankingEntry[]>([]);
   const [muro, setMuro] = useState<MuroEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (authLoading || !user) return;
     (async () => {
-      const token = await getToken();
-      const res = await apiFetch("/api/ranking", token);
-      const data = await res.json();
-      setRanking(data.ranking ?? []);
-      setMuro(data.muro ?? []);
-      setLoading(false);
+      setError(null);
+      try {
+        const token = await getToken();
+        const res = await apiFetch("/api/ranking", token);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error ?? "Error al cargar el ranking");
+        setRanking(data.ranking ?? []);
+        setMuro(data.muro ?? []);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Error al cargar el ranking");
+      } finally {
+        setLoading(false);
+      }
     })();
   }, [user, authLoading, getToken]);
 
@@ -55,6 +63,10 @@ export default function RankingPage() {
           <div className="mt-16 flex justify-center">
             <span className="h-6 w-6 animate-spin-slow rounded-full border-2 border-[var(--brand)] border-t-transparent" aria-hidden="true" />
           </div>
+        ) : error ? (
+          <p className="mt-6 flex items-center gap-1.5 rounded-[var(--radius-sm)] border border-[var(--danger-border)] bg-[var(--danger-bg)] px-2.5 py-1.5 text-[12.5px] font-medium text-[var(--danger)]">
+            {error}
+          </p>
         ) : (
           <div className="mt-6 grid gap-6 lg:grid-cols-5">
             <div className="lg:col-span-3">

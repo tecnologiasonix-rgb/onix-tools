@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin";
 import { requireUser } from "@/lib/auth-server";
+import { getProduct } from "@/lib/products";
 import {
   assignmentDocId,
   AssignmentDoc,
@@ -41,7 +42,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Falta productId o leadId" }, { status: 400 });
   }
 
-  const docId = assignmentDocId(productId as AssignmentDoc["productId"], leadId);
+  const product = getProduct(productId);
+  if (!product) {
+    return NextResponse.json({ error: "Producto no encontrado" }, { status: 404 });
+  }
+
+  const docId = assignmentDocId(product.id, leadId);
   const docRef = adminDb.collection("assignments").doc(docId);
 
   try {

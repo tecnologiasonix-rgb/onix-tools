@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { EnrichedLead, LeadStatus, SaleInfo } from "@/lib/types";
+import { EnrichedLead, LeadStatus } from "@/lib/types";
 import { SaleForm, SaleFormInput } from "@/components/SaleForm";
 import { CountdownRing } from "@/components/CountdownRing";
 

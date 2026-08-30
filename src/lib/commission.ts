@@ -13,6 +13,16 @@ import { Product } from "@/lib/types";
  * propio registro de venta (SaleInfo.comisionPorcentaje). Si el % del
  * producto cambia después, esta venta ya registrada NO se recalcula: el %
  * antiguo se mantiene, el nuevo solo aplica a ventas futuras.
+ *
+ * LIMITACIÓN CONOCIDA (multi-moneda): esta función NO convierte divisas — la
+ * comisión sale en las mismas unidades que `importe`, sea EUR o USD. Los
+ * paneles de admin (admin/ventas, admin/page) sí AGRUPAN el importe bruto
+ * por moneda, pero suman `comisionImporte` de todas las ventas junto y lo
+ * muestran con el símbolo € fijo, sin distinguir su moneda de origen. Si el
+ * equipo empieza a vender de verdad en USD, ese total de comisión dejará de
+ * ser correcto. No se ha resuelto aquí porque requiere una decisión de
+ * negocio explícita (¿la comisión se paga siempre en EUR a un tipo de
+ * cambio? ¿en la misma moneda que la venta?) que no está definida todavía.
  */
 export function calculateCommission(
   product: Pick<Product, "comisionPorcentaje">,

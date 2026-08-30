@@ -13,7 +13,7 @@ export default function RegistroPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && user) router.push("/dashboard");
+    if (!loading && user) router.push("/");
   }, [user, loading, router]);
 
   if (loading || user) return null;
@@ -32,7 +32,7 @@ export default function RegistroPage() {
         <h1 className="mb-5 text-center text-lg font-semibold text-[var(--foreground)]">
           Crea tu cuenta de vendedor
         </h1>
-        <AuthForm mode="registro" onSuccess={() => router.push("/dashboard")} />
+        <AuthForm mode="registro" onSuccess={() => router.push("/")} />
       </div>
 
       <p className="mt-6 max-w-sm text-center text-[11.5px] leading-relaxed text-[var(--foreground-faint)]">

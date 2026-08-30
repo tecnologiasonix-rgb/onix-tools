@@ -14,15 +14,23 @@ export default function AdminUsuariosPage() {
   const [search, setSearch] = useState("");
 
   async function load() {
-    const token = await getToken();
-    const res = await apiFetch("/api/admin/users", token);
-    const data = await res.json();
-    setUsers(data.users ?? []);
-    setLoading(false);
+    setError(null);
+    try {
+      const token = await getToken();
+      const res = await apiFetch("/api/admin/users", token);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Error al cargar los usuarios");
+      setUsers(data.users ?? []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al cargar los usuarios");
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
-    load();
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga inicial intencional al montar
+    void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

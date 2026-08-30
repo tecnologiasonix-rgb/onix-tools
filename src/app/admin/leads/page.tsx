@@ -22,15 +22,23 @@ export default function AdminLeadsPage() {
   const [error, setError] = useState<string | null>(null);
 
   async function load() {
-    const token = await getToken();
-    const res = await apiFetch("/api/admin/assignments", token);
-    const data = await res.json();
-    setAssignments(data.assignments ?? []);
-    setLoading(false);
+    setError(null);
+    try {
+      const token = await getToken();
+      const res = await apiFetch("/api/admin/assignments", token);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Error al cargar los leads");
+      setAssignments(data.assignments ?? []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al cargar los leads");
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
-    load();
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga inicial intencional al montar
+    void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

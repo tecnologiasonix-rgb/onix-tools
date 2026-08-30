@@ -10,14 +10,28 @@ export default function AdminAjustesPage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Distinto de `error` (que es el error de handleSave, se limpia solo):
+  // loadError persiste hasta que la recarga inicial tenga éxito, porque si
+  // no hay visibleLeadsWindow no hay nada que guardar todavía.
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  useEffect(() => {
-    (async () => {
+  async function loadConfig() {
+    setLoadError(null);
+    try {
       const token = await getToken();
       const res = await apiFetch("/api/admin/config", token);
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Error al cargar la configuración");
       setVisibleLeadsWindow(data.config.visibleLeadsWindow);
-    })();
+    } catch (err) {
+      setLoadError(err instanceof Error ? err.message : "Error al cargar la configuración");
+    }
+  }
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga inicial intencional al montar
+    void loadConfig();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [getToken]);
 
   async function handleSave() {
@@ -46,6 +60,16 @@ export default function AdminAjustesPage() {
   }
 
   if (visibleLeadsWindow === null) {
+    if (loadError) {
+      return (
+        <div className="flex flex-col items-center gap-3 py-20 text-center">
+          <p className="max-w-sm text-sm font-medium text-[var(--danger)]">{loadError}</p>
+          <button onClick={() => void loadConfig()} className="btn btn-secondary px-4 py-2 text-[13px]">
+            Reintentar
+          </button>
+        </div>
+      );
+    }
     return (
       <div className="flex items-center justify-center py-20">
         <span className="h-6 w-6 animate-spin-slow rounded-full border-2 border-[var(--brand)] border-t-transparent" aria-hidden="true" />

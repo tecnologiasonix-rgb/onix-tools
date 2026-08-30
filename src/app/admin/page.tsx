@@ -12,19 +12,28 @@ export default function AdminHomePage() {
   const [assignments, setAssignments] = useState<AssignmentDoc[]>([]);
   const [users, setUsers] = useState<UserDoc[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
-      const token = await getToken();
-      const [aRes, uRes] = await Promise.all([
-        apiFetch("/api/admin/assignments", token),
-        apiFetch("/api/admin/users", token),
-      ]);
-      const aData = await aRes.json();
-      const uData = await uRes.json();
-      setAssignments(aData.assignments ?? []);
-      setUsers(uData.users ?? []);
-      setLoading(false);
+      setError(null);
+      try {
+        const token = await getToken();
+        const [aRes, uRes] = await Promise.all([
+          apiFetch("/api/admin/assignments", token),
+          apiFetch("/api/admin/users", token),
+        ]);
+        const aData = await aRes.json();
+        const uData = await uRes.json();
+        if (!aRes.ok) throw new Error(aData.error ?? "Error al cargar los leads");
+        if (!uRes.ok) throw new Error(uData.error ?? "Error al cargar los usuarios");
+        setAssignments(aData.assignments ?? []);
+        setUsers(uData.users ?? []);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Error al cargar el resumen");
+      } finally {
+        setLoading(false);
+      }
     })();
   }, [getToken]);
 
@@ -39,6 +48,14 @@ export default function AdminHomePage() {
       <div className="flex items-center justify-center py-20">
         <span className="h-6 w-6 animate-spin-slow rounded-full border-2 border-[var(--brand)] border-t-transparent" aria-hidden="true" />
       </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <p className="mt-3 flex items-center gap-1.5 rounded-[var(--radius-sm)] border border-[var(--danger-border)] bg-[var(--danger-bg)] px-2.5 py-1.5 text-[12.5px] font-medium text-[var(--danger)]">
+        {error}
+      </p>
     );
   }
 

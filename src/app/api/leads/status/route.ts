@@ -30,9 +30,15 @@ const VALID_STATUSES: LeadStatus[] = ["contactado", "interesado", "vendido", "li
 // mensual con comisión recurrente).
 type IncomingSale = {
   importe: number;
+  moneda: string;
   referenciaPago: string;
   fechaHoraPago: string;
 };
+
+// Únicas monedas que ofrece el desplegable de SaleForm.tsx — se valida aquí
+// también porque el body de la petición no es de fiar solo por venir del
+// propio frontend.
+const VALID_CURRENCIES = ["EUR", "USD"];
 
 export async function POST(req: NextRequest) {
   let user;
@@ -68,6 +74,9 @@ export async function POST(req: NextRequest) {
     }
     if (typeof incomingSale.importe !== "number" || incomingSale.importe <= 0) {
       return NextResponse.json({ error: "El importe debe ser un número mayor que 0" }, { status: 400 });
+    }
+    if (!incomingSale.moneda || !VALID_CURRENCIES.includes(incomingSale.moneda)) {
+      return NextResponse.json({ error: "Moneda no válida" }, { status: 400 });
     }
     if (!incomingSale.referenciaPago || incomingSale.referenciaPago.trim().length < 3) {
       return NextResponse.json(
@@ -125,7 +134,7 @@ export async function POST(req: NextRequest) {
           newStatus === "vendido" && incomingSale && commission
             ? {
                 importe: incomingSale.importe,
-                moneda: "EUR",
+                moneda: incomingSale.moneda,
                 referenciaPago: incomingSale.referenciaPago.trim(),
                 fechaHoraPago: incomingSale.fechaHoraPago,
                 comisionPorcentaje: commission.comisionPorcentaje,

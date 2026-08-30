@@ -13,7 +13,7 @@ export default function LoginPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && user) router.push("/dashboard");
+    if (!loading && user) router.push("/");
   }, [user, loading, router]);
 
   if (loading || user) return null;
@@ -32,7 +32,7 @@ export default function LoginPage() {
         <h1 className="mb-5 text-center text-lg font-semibold text-[var(--foreground)]">
           Inicia sesión
         </h1>
-        <AuthForm mode="login" onSuccess={() => router.push("/dashboard")} />
+        <AuthForm mode="login" onSuccess={() => router.push("/")} />
       </div>
     </main>
   );
