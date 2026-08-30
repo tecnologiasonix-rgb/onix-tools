@@ -6,18 +6,17 @@ import "@fontsource/jetbrains-mono/600.css";
 import "@fontsource/jetbrains-mono/700.css";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
+import { ThemeProvider, ThemeScript } from "@/lib/theme-context";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
-
-const APP_NAME = "Onix Leads";
+import { APP_NAME, APP_TAGLINE } from "@/lib/brand";
 
 export const metadata: Metadata = {
   applicationName: APP_NAME,
   title: {
-    default: "Onix Leads — Gestor de Leads",
+    default: `${APP_NAME} — Plataforma de vendedores`,
     template: `%s · ${APP_NAME}`,
   },
-  description:
-    "Panel interno de Tecnologías Onix para repartir, gestionar y cerrar leads en equipo.",
+  description: `${APP_TAGLINE} Plataforma de Tecnologías Onix para vender Camarero Digital y CitaManager.`,
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [
@@ -29,7 +28,7 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent", // coherente con arranque en tema oscuro
     title: APP_NAME,
   },
   formatDetection: {
@@ -41,17 +40,30 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
-  themeColor: "#1557f0",
-  colorScheme: "light",
+  // Dos entradas: el navegador/PWA usa la que coincide con el tema activo
+  // de verdad en cada momento (el color de la barra de estado del móvil
+  // también debe seguir al tema, no quedar fijo en el azul de marca cuando
+  // el vendedor está en modo oscuro).
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#0b0e14" },
+    { media: "(prefers-color-scheme: light)", color: "#1557f0" },
+  ],
+  // Sin colorScheme fijo aquí: lo decide data-theme en <html>, aplicado por
+  // ThemeScript antes del primer paint (ver src/lib/theme-context.tsx).
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="es" className="h-full antialiased">
-      <body className="min-h-full flex flex-col text-neutral-900">
+      <head>
+        <ThemeScript />
+      </head>
+      <body className="min-h-full flex flex-col text-[var(--foreground)]">
         <div className="app-ambient-bg" aria-hidden="true" />
         <ServiceWorkerRegister />
-        <AuthProvider>{children}</AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

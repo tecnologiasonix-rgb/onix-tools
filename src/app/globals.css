@@ -11,6 +11,22 @@
   --font-inter: "Inter Variable";
   --font-jbmono: "JetBrains Mono";
 
+  /* Geometría — igual en ambos temas */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-full: 999px;
+
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+}
+
+/* =========================================================================
+   TEMA CLARO (por defecto de fábrica, disponible desde ajustes)
+   ========================================================================= */
+[data-theme="light"] {
   /* Superficie */
   --background: #f6f7fb;
   --surface: #ffffff;
@@ -68,12 +84,6 @@
   --success: #0f9d58;
   --success-bg: #e7f7ee;
 
-  /* Geometría */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-full: 999px;
-
   /* Sombra: difusa y fría, nunca negra pura, para que las tarjetas floten poco */
   --shadow-xs: 0 1px 2px 0 rgba(15, 23, 41, 0.04);
   --shadow-sm: 0 1px 3px 0 rgba(15, 23, 41, 0.07), 0 1px 2px -1px rgba(15, 23, 41, 0.06);
@@ -81,10 +91,84 @@
   --shadow-lg: 0 16px 40px -12px rgba(15, 23, 41, 0.22);
   --shadow-focus: 0 0 0 3px rgba(21, 87, 240, 0.28);
 
-  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
-  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --duration-fast: 120ms;
-  --duration-base: 200ms;
+  color-scheme: light;
+}
+
+/* =========================================================================
+   TEMA OSCURO (por defecto de la plataforma — ver layout.tsx)
+   Fondo azul-noche (no negro puro) para evitar el "negro + un acento neón"
+   genérico; tres acentos con roles funcionales distintos (progreso/alerta/
+   éxito), no uno decorativo. El logo de Tecnologías Onix (fondo negro,
+   línea blanca) ya está construido para este contexto de forma nativa.
+   ========================================================================= */
+[data-theme="dark"] {
+  /* Superficie */
+  --background: #0b0e14;
+  --surface: #131822;
+  --surface-raised: #171d29;
+  --surface-sunken: #0e131b;
+
+  /* Texto */
+  --foreground: #eef1f7;
+  --foreground-muted: #a4acbe;
+  --foreground-faint: #6b7386;
+
+  /* Bordes */
+  --border: #1c2333;
+  --border-strong: #2a3247;
+
+  /* Marca — azul eléctrico, connota tecnología/datos en vivo */
+  --brand: #3d8bff;
+  --brand-hover: #5c9dff;
+  --brand-active: #a9c9ff;
+  --brand-tint: #16233d;
+  --brand-tint-strong: #1e2f4e;
+  --ink: #eef1f7;
+  --ink-hover: #ffffff;
+
+  /* Estados operativos de un lead — mismos matices, ajustados para fondo oscuro */
+  --status-asignado: #3d8bff;
+  --status-asignado-bg: #16233d;
+  --status-asignado-fg: #8fb8ff;
+
+  --status-contactado: #f0a83a;
+  --status-contactado-bg: #2e2312;
+  --status-contactado-fg: #f5bd66;
+
+  --status-interesado: #a684fa;
+  --status-interesado-bg: #241c3d;
+  --status-interesado-fg: #c1a8fd;
+
+  --status-vendido: #34d399;
+  --status-vendido-bg: #0f2a20;
+  --status-vendido-fg: #5fe3af;
+
+  --status-liberado: #8890a3;
+  --status-liberado-bg: #1a1f2b;
+  --status-liberado-fg: #a4acbe;
+
+  /* Urgencia del cronómetro de 72h (azul -> ámbar -> coral), mismo rol que en claro */
+  --urgency-low: #3d8bff;
+  --urgency-mid: #f5a623;
+  --urgency-high: #f0645a;
+
+  /* Feedback */
+  --danger: #f0645a;
+  --danger-bg: #2e1614;
+  --danger-border: #4a2320;
+  --success: #34d399;
+  --success-bg: #0f2a20;
+
+  /* Sombra: en oscuro la sombra aporta poco contraste real, así que el
+     peso visual de las tarjetas viene sobre todo del borde, no de difuminar
+     negro sobre negro. */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.25);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.35), 0 1px 2px -1px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 16px -4px rgba(0, 0, 0, 0.45), 0 2px 6px -2px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 16px 40px -12px rgba(0, 0, 0, 0.55);
+  --shadow-focus: 0 0 0 3px rgba(61, 139, 255, 0.35);
+
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -94,15 +178,13 @@
   --font-mono: var(--font-jbmono);
 }
 
-/* La app es una herramienta de trabajo de equipo: se mantiene en modo claro
-   siempre (legibilidad de datos e importes por encima de preferencia de SO). */
+/* El tema (claro/oscuro) se controla vía data-theme en <html>, aplicado
+   por ThemeProvider antes del primer paint (ver src/lib/theme-context.tsx)
+   para no producir flash de tema incorrecto. Por defecto la plataforma
+   arranca en oscuro; el vendedor puede cambiar a claro desde Ajustes. */
 
 * {
   border-color: var(--border);
-}
-
-html {
-  color-scheme: light;
 }
 
 body {

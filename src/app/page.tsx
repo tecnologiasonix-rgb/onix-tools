@@ -1,24 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { Header } from "@/components/Header";
 import { useAuth } from "@/lib/auth-context";
 import { PRODUCTS } from "@/lib/products";
 
 export default function HomePage() {
   const { user, loading: authLoading } = useAuth();
-  const router = useRouter();
-
-  // Si solo hay un producto, saltamos directo a su lista de leads.
-  useEffect(() => {
-    if (authLoading || !user) return;
-    if (PRODUCTS.length === 1) {
-      router.push(`/producto/${PRODUCTS[0].id}`);
-    }
-  }, [user, authLoading, router]);
 
   return (
     <>
@@ -47,21 +36,26 @@ export default function HomePage() {
 
             <span className="badge mb-4 border border-[var(--brand-tint-strong)] bg-[var(--brand-tint)] text-[var(--brand-active)]">
               <span className="h-1.5 w-1.5 rounded-full bg-[var(--brand)]" aria-hidden="true" />
-              Herramienta interna
+              Plataforma de vendedores
             </span>
 
             <h1 className="text-2xl font-bold tracking-tight text-[var(--foreground)] sm:text-3xl">
-              Gestor de Leads
+              Vende {PRODUCTS.map((p) => p.name).join(" y ")}, gana comisión
             </h1>
             <p className="mt-3 max-w-sm text-[15px] leading-relaxed text-[var(--foreground-muted)]">
-              Reparte, contacta y cierra leads en equipo. Cada lead queda a tu
-              nombre 72 horas para que nadie más lo trabaje mientras tanto.
+              Regístrate, elige tus leads y haz seguimiento. Cada lead queda a tu
+              nombre 72 horas para que nadie más lo trabaje mientras tanto. Cierra
+              la venta y cobra tu comisión.
             </p>
 
-            <p className="mt-8 text-sm text-[var(--foreground-faint)]">
-              Inicia sesión con tu cuenta de Google desde la esquina superior
-              derecha para continuar.
-            </p>
+            <div className="mt-8 flex w-full max-w-xs flex-col gap-2.5 sm:flex-row sm:max-w-none">
+              <Link href="/registro" className="btn btn-primary flex-1 py-2.5">
+                Empezar a vender
+              </Link>
+              <Link href="/login" className="btn btn-secondary flex-1 py-2.5">
+                Ya tengo cuenta
+              </Link>
+            </div>
 
             <div className="mt-10 grid w-full grid-cols-1 gap-3 text-left sm:grid-cols-3">
               {[
@@ -70,12 +64,12 @@ export default function HomePage() {
                   desc: "Nadie más contacta un lead mientras lo tienes tú.",
                 },
                 {
-                  title: "Ventas verificables",
-                  desc: "Cada cierre queda con importe, referencia y fecha.",
+                  title: "40% de comisión",
+                  desc: "Cobras el 40% de cada venta que cierres.",
                 },
                 {
-                  title: "Todo en equipo",
-                  desc: "Visibilidad compartida de quién lleva cada lead.",
+                  title: "Renueva si sigue interesado",
+                  desc: "¿Cliente en prueba de 14 días? Amplía el seguimiento.",
                 },
               ].map((item) => (
                 <div key={item.title} className="surface-card p-4">
