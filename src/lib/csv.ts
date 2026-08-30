@@ -51,9 +51,23 @@ function readOneCsv(productId: ProductId, csvFile: string): Lead[] {
  * Lee y fusiona los leads de TODOS los CSV de un producto (uno o varios).
  * Los leads en sí no se guardan en Firestore — el estado de cada uno
  * (asignación, venta) vive aparte, indexado por leadId.
+ *
+ * Deduplica por leadId (= mismo nombre+dirección normalizados) quedándose
+ * con la primera aparición: los CSV de origen pueden traer la misma fila
+ * repetida (scraping duplicado) o solaparse entre sí si un producto usa
+ * varios archivos, y sin este paso cada repetición generaba una tarjeta de
+ * lead adicional en la plataforma con idéntico leadId.
  */
 export function readLeadsForProduct(productId: ProductId, csvFiles: string[]): Lead[] {
-  return csvFiles.flatMap((file) => readOneCsv(productId, file));
+  const all = csvFiles.flatMap((file) => readOneCsv(productId, file));
+  const seen = new Set<string>();
+  const deduped: Lead[] = [];
+  for (const lead of all) {
+    if (seen.has(lead.leadId)) continue;
+    seen.add(lead.leadId);
+    deduped.push(lead);
+  }
+  return deduped;
 }
 
 /**
